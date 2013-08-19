@@ -72,12 +72,12 @@ class Machine
                     return 0;
                     break;
                 default:
-                    if ($cell >= 0 && $cell <= 9) {
-                        $this->push($cell);
+                    if (preg_match('#^\d$#', $cell)) {
+                        $this->push((int) $cell);
                         goto next;
                     }
 
-                    if (preg_match('^[abcdef]$', $cell)) {
+                    if (preg_match('#^[abcdef]$#', $cell)) {
                         $mapping = ['a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15];
                         $this->push($mapping[$cell]);
                         goto next;
