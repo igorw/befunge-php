@@ -35,7 +35,7 @@ class Machine
             $cell = $this->current_cell();
 
             if ($this->string_mode && $cell !== '"') {
-                $this->push($cell);
+                $this->push(ord($cell));
                 goto next;
             }
 
@@ -71,7 +71,7 @@ class Machine
                     $this->next();
                     break;
                 case ',':
-                    echo $this->pop();
+                    echo chr($this->pop());
                     break;
                 case '.':
                     echo $this->pop();
@@ -80,7 +80,7 @@ class Machine
                     $this->push((int) fgets(STDIN));
                     break;
                 case '~':
-                    $this->push(fread(STDIN, 1));
+                    $this->push(ord(fread(STDIN, 1)));
                     break;
                 case '!':
                     $this->push(!$this->pop());
@@ -121,14 +121,14 @@ class Machine
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
-                    $this->push($this->code[$y][$x]);
+                    $this->push(ord($this->code[$y][$x]));
                     break;
                 case 'p':
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
                     $value = $this->pop();
-                    $this->code[$y][$x] = $value;
+                    $this->code[$y][$x] = chr($value);
                     break;
                 case '+':
                     $b = $this->pop();
