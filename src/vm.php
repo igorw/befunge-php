@@ -25,6 +25,9 @@ function parse($code)
     return $space;
 }
 
+const MACHINE_HALT = 0;
+const MACHINE_CONTINUE = 1;
+
 class Machine
 {
     public $ip = [0, 0];
@@ -55,194 +58,201 @@ class Machine
             }
 
             $cell = $this->current_cell();
+            $status = $this->process_operation($cell);
 
-            if ($this->string_mode && $cell !== '"') {
-                $this->logger->debug('push char', ['char' => $cell]);
-                $this->push(ord($cell));
-                goto next;
-            }
+            if (MACHINE_HALT === $status)
+                return 0;
 
-            if ($this->comment_mode && $cell !== ';') {
-                goto next;
-            }
-
-            switch ($cell) {
-                case '"':
-                    $this->string_mode = !$this->string_mode;
-                    $this->logger->debug('toggle string mode', ['string_mode' => $this->string_mode]);
-                    break;
-                case ';':
-                    $this->comment_mode = !$this->comment_mode;
-                    $this->logger->debug('toggle comment mode', ['comment_mode' => $this->comment_mode]);
-                    break;
-                case '>':
-                    $this->delta = [1, 0];
-                    $this->logger->debug('direction right');
-                    break;
-                case '<':
-                    $this->delta = [-1, 0];
-                    $this->logger->debug('direction left');
-                    break;
-                case '^':
-                    $this->delta = [0, -1];
-                    $this->logger->debug('direction up');
-                    break;
-                case 'v':
-                    $this->delta = [0, 1];
-                    $this->logger->debug('direction down');
-                    break;
-                case ':':
-                    $value = $this->pop();
-                    $this->push($value);
-                    $this->push($value);
-                    $this->logger->debug('duplicate', ['value' => $value]);
-                    break;
-                case '#':
-                    $this->next();
-                    $this->logger->debug('discard');
-                    break;
-                case ',':
-                    $char = chr($this->pop());
-                    echo $char;
-                    $this->logger->debug('output char', ['char' => $char]);
-                    break;
-                case '.':
-                    $number = $this->pop();
-                    echo $number;
-                    $this->logger->debug('output number', ['number' => $number]);
-                    break;
-                case '&':
-                    $number = (int) fgets(STDIN);
-                    $this->push($number);
-                    $this->logger->debug('input number', ['number' => $number]);
-                    break;
-                case '~':
-                    $char = fread(STDIN, 1);
-                    $this->push(ord($char));
-                    $this->logger->debug('input char', ['char' => $char]);
-                    break;
-                case '!':
-                    $this->push(!$this->pop());
-                    $this->logger->debug('negate');
-                    break;
-                case '\\':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($b);
-                    $this->push($a);
-                    $this->logger->debug('swap');
-                    break;
-                case '$':
-                    $value = $this->pop();
-                    $this->logger->debug('discard', ['value' => $value]);
-                    break;
-                case '[':
-                    $this->turn_left();
-                    $this->logger->debug('turn left');
-                    break;
-                case ']':
-                    $this->turn_right();
-                    $this->logger->debug('turn right');
-                    break;
-                case 'w':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    if ($a < $b) {
-                        $this->turn_left();
-                        $this->logger->debug('compare: turn left');
-                    } else if ($a > $b) {
-                        $this->turn_right();
-                        $this->logger->debug('compare: turn right');
-                    } else {
-                        // noop
-                        $this->logger->debug('compare: keep going');
-                    }
-                    break;
-                case '_':
-                    $cond = $this->pop();
-                    if ($cond) {
-                        $this->delta = [-1, 0];
-                        $this->logger->debug('horizontal cond: direction left');
-                    } else {
-                        $this->delta = [1, 0];
-                        $this->logger->debug('horizontal cond: direction right');
-                    }
-                    break;
-                case 'g':
-                    list($dx, $dy) = $this->storage_offset;
-                    $y = $this->pop() + $dy;
-                    $x = $this->pop() + $dx;
-                    $value = $this->space[$y][$x];
-                    $this->push($value);
-                    $this->logger->debug('get', ['x' => $x, 'y' => $y, 'value' => $value]);
-                    break;
-                case 'p':
-                    list($dx, $dy) = $this->storage_offset;
-                    $y = $this->pop() + $dy;
-                    $x = $this->pop() + $dx;
-                    $value = $this->pop();
-                    $this->space[$y][$x] = $value;
-                    $this->logger->debug('put', ['x' => $x, 'y' => $y, 'value' => $value]);
-                    break;
-                case '+':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($a + $b);
-                    $this->logger->debug('+', ['a' => $a, 'b' => $b]);
-                    break;
-                case '-':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($a - $b);
-                    $this->logger->debug('-', ['a' => $a, 'b' => $b]);
-                    break;
-                case '*':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($a * $b);
-                    $this->logger->debug('*', ['a' => $a, 'b' => $b]);
-                    break;
-                case '/':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($a / $b);
-                    $this->logger->debug('/', ['a' => $a, 'b' => $b]);
-                    break;
-                case '%':
-                    $b = $this->pop();
-                    $a = $this->pop();
-                    $this->push($a % $b);
-                    $this->logger->debug('%', ['a' => $a, 'b' => $b]);
-                    break;
-                case '@':
-                    $this->logger->debug('exit');
-                    return 0;
-                    break;
-                case ' ':
-                    // noop
-                    break;
-                default:
-                    if (preg_match('#^\d$#', $cell)) {
-                        $this->push((int) $cell);
-                        $this->logger->debug('push', ['value' => (int) $cell]);
-                        goto next;
-                    }
-
-                    if (preg_match('#^[abcdef]$#', $cell)) {
-                        $mapping = ['a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15];
-                        $this->push($mapping[$cell]);
-                        $this->logger->debug('push', ['value' => $mapping[$cell]]);
-                        goto next;
-                    }
-
-                    throw new \RuntimeException(sprintf('Invalid instruction: %s', $cell));
-                    break;
-            }
-
-            next: {
-                $this->next();
-            }
+            $this->next();
         }
+    }
+
+    private function process_operation($cell)
+    {
+        if ($this->string_mode && $cell !== '"') {
+            $this->logger->debug('push char', ['char' => $cell]);
+            $this->push(ord($cell));
+            return MACHINE_CONTINUE;
+        }
+
+        if ($this->comment_mode && $cell !== ';') {
+            return MACHINE_CONTINUE;
+        }
+
+        switch ($cell) {
+            case '"':
+                $this->string_mode = !$this->string_mode;
+                $this->logger->debug('toggle string mode', ['string_mode' => $this->string_mode]);
+                break;
+            case ';':
+                $this->comment_mode = !$this->comment_mode;
+                $this->logger->debug('toggle comment mode', ['comment_mode' => $this->comment_mode]);
+                break;
+            case '>':
+                $this->delta = [1, 0];
+                $this->logger->debug('direction right');
+                break;
+            case '<':
+                $this->delta = [-1, 0];
+                $this->logger->debug('direction left');
+                break;
+            case '^':
+                $this->delta = [0, -1];
+                $this->logger->debug('direction up');
+                break;
+            case 'v':
+                $this->delta = [0, 1];
+                $this->logger->debug('direction down');
+                break;
+            case ':':
+                $value = $this->pop();
+                $this->push($value);
+                $this->push($value);
+                $this->logger->debug('duplicate', ['value' => $value]);
+                break;
+            case '#':
+                $this->next();
+                $this->logger->debug('discard');
+                break;
+            case ',':
+                $char = chr($this->pop());
+                echo $char;
+                $this->logger->debug('output char', ['char' => $char]);
+                break;
+            case '.':
+                $number = $this->pop();
+                echo $number;
+                $this->logger->debug('output number', ['number' => $number]);
+                break;
+            case '&':
+                $number = (int) fgets(STDIN);
+                $this->push($number);
+                $this->logger->debug('input number', ['number' => $number]);
+                break;
+            case '~':
+                $char = fread(STDIN, 1);
+                $this->push(ord($char));
+                $this->logger->debug('input char', ['char' => $char]);
+                break;
+            case '!':
+                $this->push(!$this->pop());
+                $this->logger->debug('negate');
+                break;
+            case '\\':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($b);
+                $this->push($a);
+                $this->logger->debug('swap');
+                break;
+            case '$':
+                $value = $this->pop();
+                $this->logger->debug('discard', ['value' => $value]);
+                break;
+            case '[':
+                $this->turn_left();
+                $this->logger->debug('turn left');
+                break;
+            case ']':
+                $this->turn_right();
+                $this->logger->debug('turn right');
+                break;
+            case 'w':
+                $b = $this->pop();
+                $a = $this->pop();
+                if ($a < $b) {
+                    $this->turn_left();
+                    $this->logger->debug('compare: turn left');
+                } else if ($a > $b) {
+                    $this->turn_right();
+                    $this->logger->debug('compare: turn right');
+                } else {
+                    // noop
+                    $this->logger->debug('compare: keep going');
+                }
+                break;
+            case '_':
+                $cond = $this->pop();
+                if ($cond) {
+                    $this->delta = [-1, 0];
+                    $this->logger->debug('horizontal cond: direction left');
+                } else {
+                    $this->delta = [1, 0];
+                    $this->logger->debug('horizontal cond: direction right');
+                }
+                break;
+            case 'g':
+                list($dx, $dy) = $this->storage_offset;
+                $y = $this->pop() + $dy;
+                $x = $this->pop() + $dx;
+                $value = $this->space[$y][$x];
+                $this->push($value);
+                $this->logger->debug('get', ['x' => $x, 'y' => $y, 'value' => $value]);
+                break;
+            case 'p':
+                list($dx, $dy) = $this->storage_offset;
+                $y = $this->pop() + $dy;
+                $x = $this->pop() + $dx;
+                $value = $this->pop();
+                $this->space[$y][$x] = $value;
+                $this->logger->debug('put', ['x' => $x, 'y' => $y, 'value' => $value]);
+                break;
+            case '+':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($a + $b);
+                $this->logger->debug('+', ['a' => $a, 'b' => $b]);
+                break;
+            case '-':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($a - $b);
+                $this->logger->debug('-', ['a' => $a, 'b' => $b]);
+                break;
+            case '*':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($a * $b);
+                $this->logger->debug('*', ['a' => $a, 'b' => $b]);
+                break;
+            case '/':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($a / $b);
+                $this->logger->debug('/', ['a' => $a, 'b' => $b]);
+                break;
+            case '%':
+                $b = $this->pop();
+                $a = $this->pop();
+                $this->push($a % $b);
+                $this->logger->debug('%', ['a' => $a, 'b' => $b]);
+                break;
+            case '@':
+                $this->logger->debug('exit');
+                return MACHINE_HALT;
+                break;
+            case ' ':
+                // noop
+                break;
+            default:
+                if (preg_match('#^\d$#', $cell)) {
+                    $this->push((int) $cell);
+                    $this->logger->debug('push', ['value' => (int) $cell]);
+                    break;
+                }
+
+                if (preg_match('#^[abcdef]$#', $cell)) {
+                    $mapping = ['a' => 10, 'b' => 11, 'c' => 12, 'd' => 13, 'e' => 14, 'f' => 15];
+                    $this->push($mapping[$cell]);
+                    $this->logger->debug('push', ['value' => $mapping[$cell]]);
+                    break;
+                }
+
+                throw new \RuntimeException(sprintf('Invalid instruction: %s', $cell));
+                break;
+        }
+
+        return MACHINE_CONTINUE;
     }
 
     private function next()
