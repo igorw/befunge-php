@@ -62,6 +62,9 @@ class Machine
                 case ',':
                     echo $this->pop();
                     break;
+                case '.':
+                    echo $this->pop();
+                    break;
                 case '_':
                     $cond = $this->pop();
                     if ($cond)
