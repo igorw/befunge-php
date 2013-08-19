@@ -2,10 +2,13 @@
 
 namespace igorw\befunge;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+
 /** @api */
-function execute($code)
+function execute($code, LoggerInterface $logger = null)
 {
-    $vm = new Machine($code);
+    $vm = new Machine($code, $logger);
     return $vm->execute();
 }
 
@@ -20,9 +23,12 @@ class Machine
     public $string_mode = false;
     public $comment_mode = false;
 
-    function __construct($code)
+    private $logger;
+
+    function __construct($code, LoggerInterface $logger = null)
     {
         $this->load($code);
+        $this->logger = $logger ?: new NullLogger();
     }
 
     function execute()
