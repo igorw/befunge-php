@@ -31,4 +31,12 @@ class VmTest extends \PHPUnit_Framework_TestCase
         $this->expectOutputString($code);
         $this->assertSame(0, execute($code));
     }
+
+    /** @test */
+    function comments()
+    {
+        $code = '0 ; foo bar baz ; 1 ; qux quux ; + ; output ; , ; exit ; @';
+        $this->expectOutputString('1');
+        $this->assertSame(0, execute($code));
+    }
 }

@@ -18,6 +18,7 @@ class Machine
     public $stack = [];
     public $code = [];
     public $string_mode = false;
+    public $comment_mode = false;
 
     function __construct($code)
     {
@@ -38,9 +39,16 @@ class Machine
                 goto next;
             }
 
+            if ($this->comment_mode && $cell !== ';') {
+                goto next;
+            }
+
             switch ($cell) {
                 case '"':
                     $this->string_mode = !$this->string_mode;
+                    break;
+                case ';':
+                    $this->comment_mode = !$this->comment_mode;
                     break;
                 case '>':
                     $this->delta = [1, 0];
