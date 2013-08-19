@@ -77,6 +77,31 @@ class Machine
                 case '!':
                     $this->push(!$this->pop());
                     break;
+                case '\\':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($b);
+                    $this->push($a);
+                    break;
+                case '$':
+                    $this->pop();
+                    break;
+                case '[':
+                    $this->turn_left();
+                    break;
+                case ']':
+                    $this->turn_right();
+                    break;
+                case 'w':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    if ($a < $b)
+                        $this->turn_left();
+                    else if ($a > $b)
+                        $this->turn_right();
+                    else
+                        ; // noop
+                    break;
                 case '_':
                     $cond = $this->pop();
                     if ($cond)
@@ -167,6 +192,43 @@ class Machine
     {
         $this->delta[0] *= -1;
         $this->delta[1] *= -1;
+    }
+
+    private function turn_left()
+    {
+        $matrix = [
+            [[1, 0], [0, -1]],
+            [[0, -1], [-1, 0]],
+            [[-1, 0], [0, 1]],
+            [[0, 1], [1, 0]],
+        ];
+
+        $this->update_delta($matrix);
+    }
+
+    private function turn_right()
+    {
+        $matrix = [
+            [[1, 0], [0, 1]],
+            [[0, 1], [-1, 0]],
+            [[-1, 0], [0, -1]],
+            [[0, -1], [1, 0]],
+        ];
+
+        $this->update_delta($matrix);
+    }
+
+    private function update_delta(array $matrix)
+    {
+        foreach ($matrix as $entry) {
+            list($current, $next) = $entry;
+            if ($current === $this->delta) {
+                $this->delta = $next;
+                return;
+            }
+        }
+
+        throw new \RuntimeException('Delta in inconsistent state');
     }
 
     private function current_cell_exists()
