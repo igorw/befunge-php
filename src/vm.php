@@ -12,17 +12,17 @@ function execute($code, LoggerInterface $logger = null)
     return $vm->execute();
 }
 
-function parse($raw_code)
+function parse($code)
 {
-    $code = [];
+    $space = [];
 
-    $raw_code = preg_replace('#\r\n?#', "\n", $raw_code);
-    $lines = explode("\n", $raw_code);
+    $code = preg_replace('#\r\n?#', "\n", $code);
+    $lines = explode("\n", $code);
     foreach ($lines as $i => $line)
         for ($j = 0; $j < strlen($line); $j++)
-            $code[$i][$j] = ord($line[$j]);
+            $space[$i][$j] = ord($line[$j]);
 
-    return $code;
+    return $space;
 }
 
 class Machine
@@ -32,7 +32,7 @@ class Machine
     public $delta = [1, 0];
 
     public $stack = [];
-    public $code = [];
+    public $space = [];
     public $string_mode = false;
     public $comment_mode = false;
 
@@ -40,7 +40,7 @@ class Machine
 
     function __construct($code, LoggerInterface $logger = null)
     {
-        $this->code = parse($code);
+        $this->space = parse($code);
         $this->logger = $logger ?: new NullLogger();
     }
 
@@ -140,14 +140,14 @@ class Machine
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
-                    $this->push($this->code[$y][$x]);
+                    $this->push($this->space[$y][$x]);
                     break;
                 case 'p':
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
                     $value = $this->pop();
-                    $this->code[$y][$x] = $value;
+                    $this->space[$y][$x] = $value;
                     break;
                 case '+':
                     $b = $this->pop();
@@ -254,13 +254,13 @@ class Machine
     private function current_cell_exists()
     {
         list($x, $y) = $this->ip;
-        return isset($this->code[$y][$x]);
+        return isset($this->space[$y][$x]);
     }
 
     private function current_cell()
     {
         list($x, $y) = $this->ip;
-        return chr($this->code[$y][$x]);
+        return chr($this->space[$y][$x]);
     }
 
     private function wrap()
