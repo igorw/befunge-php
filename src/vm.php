@@ -27,8 +27,11 @@ class Machine
     function execute()
     {
         while (true) {
-            list($x, $y) = $this->ip;
-            $cell = isset($this->code[$y][$x]) ? $this->code[$y][$x] : null;
+            if (!$this->current_cell_exists()) {
+                $this->wrap();
+            }
+
+            $cell = $this->current_cell();
 
             if ($this->string_mode && $cell !== '"') {
                 $this->push($cell);
@@ -64,6 +67,15 @@ class Machine
                     break;
                 case '.':
                     echo $this->pop();
+                    break;
+                case '&':
+                    $this->push((int) fread(STDIN, 1));
+                    break;
+                case '~':
+                    $this->push(fread(STDIN, 1));
+                    break;
+                case '!':
+                    $this->push(!$this->pop());
                     break;
                 case '_':
                     $cond = $this->pop();
@@ -149,6 +161,36 @@ class Machine
     {
         $this->ip[0] += $this->delta[0];
         $this->ip[1] += $this->delta[1];
+    }
+
+    private function invert_delta()
+    {
+        $this->delta[0] *= -1;
+        $this->delta[1] *= -1;
+    }
+
+    private function current_cell_exists()
+    {
+        list($x, $y) = $this->ip;
+        return isset($this->code[$y][$x]);
+    }
+
+    private function current_cell()
+    {
+        list($x, $y) = $this->ip;
+        return $this->code[$y][$x];
+    }
+
+    private function wrap()
+    {
+        $this->invert_delta();
+        $this->next();
+
+        while ($this->current_cell_exists())
+            $this->next();
+
+        $this->invert_delta();
+        $this->next();
     }
 
     private function push($value)
