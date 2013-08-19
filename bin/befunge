@@ -10,7 +10,7 @@ $doc = <<<DOC
 Befunge.
 
 Usage:
-  befunge [--debug] [--]
+  befunge [--debug] [--] <filename>
   befunge (-h | --help)
 
 Options:
@@ -21,7 +21,7 @@ DOC;
 
 $args = Docopt\docopt($doc);
 
-$code = stream_get_contents(STDIN);
+$code = file_get_contents($args['<filename>']);
 $return = befunge\execute($code);
 echo "\n";
 exit($return);
