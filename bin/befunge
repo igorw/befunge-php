@@ -22,7 +22,7 @@ DOC;
 $args = Docopt\docopt($doc);
 
 $code = file_get_contents($args['<filename>']);
-$logger = $args['--debug'] ? new Monolog\Logger('chicken') : null;
+$logger = $args['--debug'] ? new Monolog\Logger('befunge') : null;
 $return = befunge\execute($code, $logger);
 echo "\n";
 exit($return);
