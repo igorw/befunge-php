@@ -121,14 +121,14 @@ class Machine
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
-                    $this->push(ord($this->code[$y][$x]));
+                    $this->push($this->code[$y][$x]);
                     break;
                 case 'p':
                     list($dx, $dy) = $this->storage_offset;
                     $y = $this->pop() + $dy;
                     $x = $this->pop() + $dx;
                     $value = $this->pop();
-                    $this->code[$y][$x] = chr($value);
+                    $this->code[$y][$x] = $value;
                     break;
                 case '+':
                     $b = $this->pop();
@@ -187,7 +187,9 @@ class Machine
     {
         $code = preg_replace('#\r\n?#', "\n", $code);
         $lines = explode("\n", $code);
-        $this->code = $lines;
+        foreach ($lines as $i => $line)
+            for ($j = 0; $j < strlen($line); $j++)
+                $this->code[$i][$j] = ord($line[$j]);
     }
 
     private function next()
@@ -248,7 +250,7 @@ class Machine
     private function current_cell()
     {
         list($x, $y) = $this->ip;
-        return $this->code[$y][$x];
+        return chr($this->code[$y][$x]);
     }
 
     private function wrap()
