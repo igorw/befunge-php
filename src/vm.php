@@ -12,6 +12,19 @@ function execute($code, LoggerInterface $logger = null)
     return $vm->execute();
 }
 
+function parse($raw_code)
+{
+    $code = [];
+
+    $raw_code = preg_replace('#\r\n?#', "\n", $raw_code);
+    $lines = explode("\n", $raw_code);
+    foreach ($lines as $i => $line)
+        for ($j = 0; $j < strlen($line); $j++)
+            $code[$i][$j] = ord($line[$j]);
+
+    return $code;
+}
+
 class Machine
 {
     public $ip = [0, 0];
@@ -27,7 +40,7 @@ class Machine
 
     function __construct($code, LoggerInterface $logger = null)
     {
-        $this->load($code);
+        $this->code = parse($code);
         $this->logger = $logger ?: new NullLogger();
     }
 
@@ -187,15 +200,6 @@ class Machine
                 $this->next();
             }
         }
-    }
-
-    private function load($code)
-    {
-        $code = preg_replace('#\r\n?#', "\n", $code);
-        $lines = explode("\n", $code);
-        foreach ($lines as $i => $line)
-            for ($j = 0; $j < strlen($line); $j++)
-                $this->code[$i][$j] = ord($line[$j]);
     }
 
     private function next()
