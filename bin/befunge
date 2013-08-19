@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/../vendor/docopt/docopt/src/docopt.php';
+
+use igorw\befunge;
+
+$doc = <<<DOC
+Befunge.
+
+Usage:
+  befunge [--debug] [--]
+  befunge (-h | --help)
+
+Options:
+  -h --help     Show this screen.
+  -d --debug    Show debug logs.
+
+DOC;
+
+$args = Docopt\docopt($doc);
+
+$code = stream_get_contents(STDIN);
+$return = befunge\execute($code);
+echo "\n";
+exit($return);
