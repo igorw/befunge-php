@@ -69,7 +69,7 @@ class Machine
                     echo $this->pop();
                     break;
                 case '&':
-                    $this->push((int) fread(STDIN, 1));
+                    $this->push((int) fgets(STDIN));
                     break;
                 case '~':
                     $this->push(fread(STDIN, 1));
