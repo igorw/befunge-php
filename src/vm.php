@@ -12,6 +12,7 @@ function execute($code)
 class Machine
 {
     public $ip = [0, 0];
+    public $storage_offset = [0, 0];
     public $delta = [1, 0];
 
     public $stack = [];
@@ -67,6 +68,44 @@ class Machine
                         $this->delta = [-1, 0];
                     else
                         $this->delta = [1, 0];
+                    break;
+                case 'g':
+                    list($dx, $dy) = $this->storage_offset;
+                    $y = $this->pop() + $dy;
+                    $x = $this->pop() + $dx;
+                    $this->push($this->code[$y][$x]);
+                    break;
+                case 'p':
+                    list($dx, $dy) = $this->storage_offset;
+                    $y = $this->pop() + $dy;
+                    $x = $this->pop() + $dx;
+                    $value = $this->pop();
+                    $this->code[$y][$x] = $value;
+                    break;
+                case '+':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($a + $b);
+                    break;
+                case '-':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($a - $b);
+                    break;
+                case '*':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($a * $b);
+                    break;
+                case '/':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($a / $b);
+                    break;
+                case '%':
+                    $b = $this->pop();
+                    $a = $this->pop();
+                    $this->push($a % $b);
                     break;
                 case '@':
                     return 0;
