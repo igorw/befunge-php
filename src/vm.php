@@ -71,6 +71,9 @@ class Machine
                 case '@':
                     return 0;
                     break;
+                case ' ':
+                    // noop
+                    break;
                 default:
                     if (preg_match('#^\d$#', $cell)) {
                         $this->push((int) $cell);

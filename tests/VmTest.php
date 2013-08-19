@@ -11,4 +11,16 @@ class VmTest extends \PHPUnit_Framework_TestCase
         $code = '0"!dlroW ,olleH">:#,_@';
         $this->assertSame(0, execute($code));
     }
+
+    /** @test */
+    function helloWorld2d()
+    {
+        $this->expectOutputString('Hello, World!');
+        $code = implode("\n", [
+            '"!dlroW ,olleH":v ',
+            '             v:,_@',
+            '             >  ^ ',
+        ]);
+        $this->assertSame(0, execute($code));
+    }
 }
