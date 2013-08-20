@@ -1,5 +1,7 @@
 # befunge-php
 
+![chicken](doc/befunge.png)
+
 Befunge is an esoteric programming language that operates in a 2d space, allowing the instruction pointer (ip) to point in any direction.
 
 This interpreter is based on the funge-98 spec, and implements a non-concurrent two-dimensional variant of the language.
