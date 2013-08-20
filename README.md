@@ -1,6 +1,6 @@
 # befunge-php
 
-![chicken](doc/befunge.png)
+![befunge](doc/befunge.png)
 
 Befunge is an esoteric programming language that operates in a 2d space, allowing the instruction pointer (ip) to point in any direction.
 
