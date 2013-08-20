@@ -18,9 +18,10 @@ function parse($code)
 
     $code = preg_replace('#\r\n?#', "\n", $code);
     $lines = explode("\n", $code);
+    $lines = array_map('str_split', $lines);
     foreach ($lines as $i => $line)
-        for ($j = 0; $j < strlen($line); $j++)
-            $space[$i][$j] = ord($line[$j]);
+        foreach ($line as $j => $char)
+            $space[$i][$j] = ord($char);
 
     return $space;
 }
