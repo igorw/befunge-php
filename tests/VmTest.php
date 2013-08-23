@@ -47,4 +47,28 @@ class VmTest extends \PHPUnit_Framework_TestCase
         $this->expectOutputString('1');
         $this->assertSame(0, execute($code));
     }
+
+    /** @test */
+    function verticalCondTrue()
+    {
+        $code = implode("\n", [
+            'v >1.@',
+            '>1|   ',
+            '  >0.@',
+        ]);
+        $this->expectOutputString('1');
+        $this->assertSame(0, execute($code));
+    }
+
+    /** @test */
+    function verticalCondFalse()
+    {
+        $code = implode("\n", [
+            'v >1.@',
+            '>0|   ',
+            '  >0.@',
+        ]);
+        $this->expectOutputString('0');
+        $this->assertSame(0, execute($code));
+    }
 }

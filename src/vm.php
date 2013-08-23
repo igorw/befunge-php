@@ -195,6 +195,16 @@ class Machine
                     $this->logger->debug('horizontal cond: direction right');
                 }
                 break;
+            case '|':
+                $cond = $this->pop();
+                if ($cond) {
+                    $this->delta = [0, -1];
+                    $this->logger->debug('vertical cond: direction up');
+                } else {
+                    $this->delta = [0, 1];
+                    $this->logger->debug('vertical cond: direction down');
+                }
+                break;
             case 'g':
                 list($dx, $dy) = $this->storage_offset;
                 $y = $this->pop() + $dy;
