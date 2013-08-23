@@ -172,6 +172,13 @@ class Machine
                     $this->logger->debug('compare: keep going');
                 }
                 break;
+            case '`':
+                $b = $this->pop();
+                $a = $this->pop();
+                $is_greater = ($a > $b) ? 1 : 0;
+                $this->push($is_greater);
+                $this->logger->debug('greater than', ['is_greater' => $is_greater]);
+                break;
             case '_':
                 $cond = $this->pop();
                 if ($cond) {

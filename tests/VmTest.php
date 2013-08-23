@@ -39,4 +39,12 @@ class VmTest extends \PHPUnit_Framework_TestCase
         $this->expectOutputString('1');
         $this->assertSame(0, execute($code));
     }
+
+    /** @test */
+    function isGreaterThan()
+    {
+        $code = '43`.@';
+        $this->expectOutputString('1');
+        $this->assertSame(0, execute($code));
+    }
 }
