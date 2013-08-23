@@ -179,6 +179,12 @@ class Machine
                 $this->push($is_greater);
                 $this->logger->debug('greater than', ['is_greater' => $is_greater]);
                 break;
+            case '?':
+                $deltas = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+                $delta = $deltas[array_rand($deltas)];
+                $this->delta = $delta;
+                $this->logger->debug('rand', ['delta' => $delta]);
+                break;
             case '_':
                 $cond = $this->pop();
                 if ($cond) {
