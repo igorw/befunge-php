@@ -12,12 +12,21 @@ function execute($code, LoggerInterface $logger = null)
     return $vm->execute();
 }
 
+function pad_lines_to_longest(array $lines)
+{
+    $longest = max(array_map('strlen', $lines));
+    return array_map(function ($line) use ($longest) {
+        return str_pad($line, $longest, ' ', STR_PAD_RIGHT);
+    }, $lines);
+}
+
 function parse($code)
 {
     $space = [];
 
     $code = preg_replace('#\r\n?#', "\n", $code);
     $lines = explode("\n", $code);
+    $lines = pad_lines_to_longest($lines);
     $lines = array_map('str_split', $lines);
     foreach ($lines as $i => $line)
         foreach ($line as $j => $char)
