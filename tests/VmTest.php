@@ -4,71 +4,57 @@ namespace igorw\befunge;
 
 class VmTest extends \PHPUnit_Framework_TestCase
 {
-    /** @test */
-    function helloWorld()
+    /** @dataProvider provideCodeSamples */
+    function testExecute($expected, $code)
     {
-        $code = '0"!dlroW ,olleH">:#,_@';
-        $this->expectOutputString('Hello, World!');
+        $code = is_array($code) ? implode("\n", $code) : $code;
+        $this->expectOutputString($expected);
         $this->assertSame(0, execute($code));
     }
 
-    /** @test */
-    function helloWorld2d()
+    function provideCodeSamples()
     {
-        $code = implode("\n", [
-            '"!dlroW ,olleH":v ',
-            '             v:,_@',
-            '             >  ^ ',
-        ]);
-        $this->expectOutputString('Hello, World!');
-        $this->assertSame(0, execute($code));
-    }
-
-    /** @test */
-    function quine()
-    {
-        $code = '01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@';
-        $this->expectOutputString($code);
-        $this->assertSame(0, execute($code));
-    }
-
-    /** @test */
-    function comments()
-    {
-        $code = '0 ; foo bar baz ; 1 ; qux quux ; + ; output ; . ; exit ; @';
-        $this->expectOutputString('1');
-        $this->assertSame(0, execute($code));
-    }
-
-    /** @test */
-    function isGreaterThan()
-    {
-        $code = '43`.@';
-        $this->expectOutputString('1');
-        $this->assertSame(0, execute($code));
-    }
-
-    /** @test */
-    function verticalCondTrue()
-    {
-        $code = implode("\n", [
-            'v >1.@',
-            '>1|   ',
-            '  >0.@',
-        ]);
-        $this->expectOutputString('1');
-        $this->assertSame(0, execute($code));
-    }
-
-    /** @test */
-    function verticalCondFalse()
-    {
-        $code = implode("\n", [
-            'v >1.@',
-            '>0|   ',
-            '  >0.@',
-        ]);
-        $this->expectOutputString('0');
-        $this->assertSame(0, execute($code));
+        return [
+            'hello world' => [
+                'Hello, World!',
+                '0"!dlroW ,olleH">:#,_@',
+            ],
+            'hello world 2d' => [
+                'Hello, World!',
+                [
+                    '"!dlroW ,olleH":v ',
+                    '             v:,_@',
+                    '             >  ^ ',
+                ],
+            ],
+            'quine' => [
+                '01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@',
+                '01->1# +# :# 0# g# ,# :# 5# 8# *# 4# +# -# _@',
+            ],
+            'comments' => [
+                '1',
+                '0 ; foo bar baz ; 1 ; qux quux ; + ; output ; . ; exit ; @',
+            ],
+            'greater than' => [
+                '1',
+                '43`.@',
+            ],
+            'vertical cond true' => [
+                '1',
+                [
+                    'v >1.@',
+                    '>1|   ',
+                    '  >0.@',
+                ],
+            ],
+            'vertical cond false' => [
+                '0',
+                [
+                    'v >1.@',
+                    '>0|   ',
+                    '  >0.@',
+                ],
+            ],
+        ];
     }
 }
